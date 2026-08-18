@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import path from "path";
 import { initDb } from "./db";
@@ -19,11 +19,6 @@ app.use("/api/auth", authRouter);
 app.use("/api/logs", requireAuth, logsRouter);
 app.use("/api/stats", requireAuth, statsRouter);
 
-app.use((err: Error, _req: Request, res: Response) => {
-  console.error(err);
-  res.status(500).json({ error: "Something went wrong" });
-});
-
 if (process.env.NODE_ENV === "production") {
   const clientDist = path.join(__dirname, "../../client/dist");
   app.use(express.static(clientDist));
@@ -31,6 +26,11 @@ if (process.env.NODE_ENV === "production") {
     res.sendFile(path.join(clientDist, "index.html"));
   });
 }
+
+app.use((err: Error, _req: Request, res: Response, next: NextFunction) => {
+  console.error(err);
+  res.status(500).json({ error: "Something went wrong" });
+});
 
 const PORT = Number(process.env.PORT) || 5000;
 
